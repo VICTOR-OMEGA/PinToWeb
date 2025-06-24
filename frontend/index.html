@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PinToWeb Dashboard</title>
+</head>
+<body>
+  <h1>Sensor Readings (LDR)</h1>
+  <ul id="data-list"></ul>
+
+  <script>
+    async function fetchData() {
+      const res = await fetch('http://192.168.1.100:5000/api/terraflow/data?limit=10');
+      const data = await res.json();
+      const list = document.getElementById('data-list');
+      list.innerHTML = '';
+      data.forEach(entry => {
+        const item = document.createElement('li');
+        item.textContent = `${entry.timestamp}: ${entry.sensor} = ${entry.value}`;
+        list.appendChild(item);
+      });
+    }
+
+    setInterval(fetchData, 10000); // every 10 seconds
+    fetchData();
+  </script>
+</body>
+</html>
+
