@@ -1,29 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>PinToWeb Dashboard</title>
+  <style>
+    body {
+      background-color: #e9f9e6;
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0, 100, 0, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #66bb6a;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    #status {
+      text-align: center;
+      font-size: 1rem;
+      margin-top: 1rem;
+      color: #388e3c;
+    }
+  </style>
 </head>
 <body>
-  <h1>Sensor Readings (LDR)</h1>
-  <ul id="data-list"></ul>
+
+  <h1>PinToWeb - LDR Sensor Dashboard</h1>
+
+  <div id="status">Fetching data...</div>
+
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Sensor</th>
+        <th>Value</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data will be inserted here -->
+    </tbody>
+  </table>
 
   <script>
     async function fetchData() {
-      const res = await fetch('http://192.168.1.100:5000/api/terraflow/data?limit=10');
-      const data = await res.json();
-      const list = document.getElementById('data-list');
-      list.innerHTML = '';
-      data.forEach(entry => {
-        const item = document.createElement('li');
-        item.textContent = `${entry.timestamp}: ${entry.sensor} = ${entry.value}`;
-        list.appendChild(item);
-      });
+      try {
+        const response = await fetch('/api/pintoweb/data');
+        const data = await response.json();
+
+        const tableBody = document.querySelector('#data-table tbody');
+        tableBody.innerHTML = '';
+
+        data.slice().reverse().forEach(entry => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${entry.sensor}</td>
+            <td>${entry.value}</td>
+            <td>${entry.timestamp}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        document.getElementById('status').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error fetching data.';
+        console.error('Fetch error:', error);
+      }
     }
 
-    setInterval(fetchData, 10000); // every 10 seconds
     fetchData();
+    setInterval(fetchData, 5000);
   </script>
+
 </body>
 </html>
 

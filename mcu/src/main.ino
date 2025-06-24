@@ -1,39 +1,54 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
 
-const char* ssid = "your_wifi_ssid";
-const char* password = "your_wifi_password";
-const char* serverName = "http://192.168.1.100:5000/api/server_name";
+const char* ssid = "Wi-Fi";
+const char* password = "Passwd";
 
-const int ldrPin = A0;
+const char* serverUrl = "http://192.168.43.56:5000/api/pintoweb";
+
+const int sensorPin = pin;  // GPIO36 for LDR
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
+
   WiFi.begin(ssid, password);
+  Serial.print("Connecting to Wi-Fi");
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
+
+  Serial.println("\nWi-Fi connected. IP: " + WiFi.localIP().toString());
 }
 
 void loop() {
-  int ldrValue = analogRead(ldrPin);
-  String jsonPayload = "{\"sensor\":\"ldr\",\"value\":" + String(ldrValue) + ",\"timestamp\":\"" + getTimestamp() + "\"}";
+  int sensorValue = analogRead(sensorPin);
+  Serial.println("LDR Value: " + String(sensorValue));
 
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    http.begin(serverName);
+    http.begin(serverUrl);
     http.addHeader("Content-Type", "application/json");
-    int httpResponseCode = http.POST(jsonPayload);
+
+    StaticJsonDocument<200> json;
+    json["sensor"] = "ldr";
+    json["value"] = sensorValue;
+
+    String payload;
+    serializeJson(json, payload);
+
+    int httpResponseCode = http.POST(payload);
+
+    Serial.print("HTTP Response: ");
+    Serial.println(httpResponseCode);
     http.end();
+  } else {
+    Serial.println("Wi-Fi not connected");
   }
 
-  delay(10000); // Send every 10 seconds
-}
-
-String getTimestamp() {
-  // Dummy static timestamp for now (ESP32 without RTC or NTP)
-  return "2025-06-24T02:00:00";
+  delay(5000); // Send every 5 seconds
 }
 
