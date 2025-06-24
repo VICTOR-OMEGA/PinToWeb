@@ -9,7 +9,7 @@
 ```txt
 [LDR Sensor]
     │
-[ESP32 Microcontroller]
+[Microcontroller]
     │  (HTTP POST / JSON)
     ▼
 [Flask Backend API] ──► [SQLite Database]
